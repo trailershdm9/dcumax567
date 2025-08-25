@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>URL Converter (Vercel + Flask)</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>URL Converter</h1>
+    <p>Paste a link, and we’ll convert it to a URL on this domain.</p>
+
+    <form id="convert-form">
+      <input id="url-input" type="url" placeholder="https://example.com/your/link" required />
+      <button type="submit">Convert</button>
+    </form>
+
+    <div id="result" class="result hidden"></div>
+  </main>
+
+  <script>
+    const form = document.getElementById('convert-form');
+    const input = document.getElementById('url-input');
+    const resultBox = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultBox.classList.add('hidden');
+      resultBox.textContent = '';
+
+      try {
+        const res = await fetch('/api/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: input.value })
+        });
+        const data = await res.json();
+
+        if (!data.ok) throw new Error(data.error || 'Conversion failed');
+
+        resultBox.innerHTML = \`
+          <p><strong>Converted URL:</strong></p>
+          <p><a href="\${data.result}" target="_blank" rel="noopener">\${data.result}</a></p>
+        \`;
+        resultBox.classList.remove('hidden');
+      } catch (err) {
+        resultBox.textContent = err.message;
+        resultBox.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
